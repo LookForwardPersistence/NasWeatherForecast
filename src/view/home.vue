@@ -2,7 +2,8 @@
   <div>
     <selection class="header-box">
       <div class="icon-box">
-      <img src="../assets/images/b/10.png"/>
+      <img src="../assets/images/logo.png" class="img-logo"/>
+        <span>星云看天气</span>
       </div>
       <div class="input-box">
       <el-input class="input-input input-width-select" v-model="cityName" @keyup.enter.native="search()" placeholder="请输入城市名">
@@ -43,47 +44,9 @@
           <li>{{em.week}}</li>
         </ul>
       </div>
-      <!--<div class="date-box">
-        <img src="../assets/images/b/1.png"/>
-        <ul class="air-info-date">
-          <li>天气：{{currData.weather}}</li>
-          <li>风级：{{currData.winp}}</li>
-          <li>气温：{{currData.temperature}}</li>
-        </ul>
-      </div>
-      <div class="date-box">
-        <img src="../assets/images/b/2.png"/>
-        <ul class="air-info-date">
-          <li>天气：{{currData.weather}}</li>
-          <li>风级：{{currData.winp}}</li>
-          <li>气温：{{currData.temperature}}</li>
-        </ul>
-      </div>
-      <div class="date-box">
-        <img src="../assets/images/b/3.png"/>
-        <ul class="air-info-date">
-          <li>天气：{{currData.weather}}</li>
-          <li>风级：{{currData.winp}}</li>
-          <li>气温：{{currData.temperature}}</li>
-        </ul>
-      </div>
-      <div class="date-box">
-        <img src="../assets/images/b/4.png"/>
-        <ul class="air-info-date">
-          <li>天气：{{currData.weather}}</li>
-          <li>风级：{{currData.winp}}</li>
-          <li>气温：{{currData.temperature}}</li>
-        </ul>
-      </div>
-
-      <div class="date-box">
-        <img src="../assets/images/b/4.png"/>
-        <ul class="air-info-date">
-          <li>天气：{{currData.weather}}</li>
-          <li>风级：{{currData.winp}}</li>
-          <li>气温：{{currData.temperature}}</li>
-        </ul>
-      </div>-->
+    </section>
+    <section class="bottom-box">
+      <span>Copyright © 2018-2019 fqhua_5@sin.cn</span>
     </section>
   </div>
 </template>
@@ -320,7 +283,7 @@
 
 <style>
   .header-box{
-    height: 80px;
+    height: 60px;
     background: #58b6ff ;
     display: flex;
     flex-direction: row;
@@ -331,8 +294,16 @@
     width: 30%;
     display: flex;
     justify-content: flex-start;
+    align-items: center;
+    color: #ffffff;
+    font-size: 35px;
   }
-
+  .img-logo{
+    top: 15px;
+    width: 65px;
+    margin-left: 5px;
+    border-radius: 30px;
+  }
   .input-box{
      width: 70%;
      display: flex;
@@ -486,5 +457,13 @@
     width: 50%;
     position: relative;
   }
-
+  .bottom-box{
+    height: 120px;
+    background: #58b6ff ;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    color: white;
+  }
 </style>
