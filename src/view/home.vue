@@ -59,19 +59,23 @@
   import {getWeatherData} from "../api/Api"
   import echarts from 'echarts'
   import macarons from 'echarts/theme/macarons';
-  import data from '../assets/data/data.json';
-
-
+  import {getWeather,getWeatherData1} from "../api/getData"
+  import $ from 'jquery'
+  import Vue from 'vue';
+  import vueJsonp from 'vue-jsonp'
+  Vue.use(vueJsonp,5000)
   export default {
     components: {
       ElButton,
-      ElInput
+      ElInput,
     },
     data(){
       return {
         cityName: '',
         currData: [],
-        weekData:[]
+        weekData:[],
+        api: "https://sapi.k780.com?app=weather.future&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json&weaid="
+
       }
     },
     computed:{
@@ -228,7 +232,109 @@
         if(!this.cityName){
           return
         }
-        getWeatherData(encodeURI(this.cityName)).then(res =>{
+        var thiz = this;
+        let url = thiz.api + encodeURI(this.cityName);
+        this.$jsonp(url).then(res=>{
+          console.log(res)
+        }).catch(err=>{
+          console.log(err)
+        })
+       /* $.ajax({
+          url: thiz.api + encodeURI(this.cityName),
+          type: 'get',
+          dataType: 'JSONP',
+          success: function (res) {
+            console.log(res)
+            if(res.success){
+              if(res.success ==="0"){
+                this.$message({
+                  showClose: true,
+                  message: res.msg,
+                  type: 'warning'
+                });
+                return
+              }
+              var data = res.result;
+              this.weekData = res.result;
+//            this.weekLine(res.result)
+              console.log(data)
+              var date=this.getFormatDate();
+              for(let i=0;i<data.length;i++){
+                if(date === data[i].days){
+                  this.currData = data[i];
+                  break;
+                }
+              }
+              console.log(this.currData)
+              //仪表盘
+              var xData = [];
+              var dayData = [];
+              var nightData = []
+              for(let j=0;j<data.length;j++){
+                xData.push(data[j].days);
+                dayData.push(data[j].temp_high);
+                nightData.push(data[j].temp_low);
+              }
+
+              this.drawbar('gotobedbar', xData,dayData,nightData);
+              var that = this;
+              var resizeTimer = null;
+              window.onresize = function () {
+                if (resizeTimer) clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function () {
+                  that.drawbar('gotobedbar', xData,dayData,nightData);
+                }, 300);
+              }
+            }
+          }
+        })*/
+       /* getWeatherData1(this.cityName).then(
+          function (res) {
+            if(res.success){
+              if(res.success ==="0"){
+                this.$message({
+                  showClose: true,
+                  message: res.msg,
+                  type: 'warning'
+                });
+                return
+              }
+              var data = res.result;
+              this.weekData = res.result;
+//            this.weekLine(res.result)
+              console.log(data)
+              var date=this.getFormatDate();
+              for(let i=0;i<data.length;i++){
+                if(date === data[i].days){
+                  this.currData = data[i];
+                  break;
+                }
+              }
+              console.log(this.currData)
+              //仪表盘
+              var xData = [];
+              var dayData = [];
+              var nightData = []
+              for(let j=0;j<data.length;j++){
+                xData.push(data[j].days);
+                dayData.push(data[j].temp_high);
+                nightData.push(data[j].temp_low);
+              }
+
+              this.drawbar('gotobedbar', xData,dayData,nightData);
+              var that = this;
+              var resizeTimer = null;
+              window.onresize = function () {
+                if (resizeTimer) clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function () {
+                  that.drawbar('gotobedbar', xData,dayData,nightData);
+                }, 300);
+              }
+            }
+          }
+        )*/
+        /*getWeatherData(encodeURI(this.cityName)).then(res =>{
+          console.log(res)
           if(res.success){
             if(res.success ==="0"){
               this.$message({
@@ -270,7 +376,7 @@
                 }, 300);
               }
           }
-        })
+        })*/
       },
       imageToBase64(url,callBack){
        /* var reader = new FileReader();
@@ -310,12 +416,15 @@
     align-items: center;
   }
   .icon-box{
+    display: flex;
     width: 30%;
     display: flex;
     justify-content: flex-start;
     align-items: center;
     color: #ffffff;
-    font-size: 35px;
+    font-size: 30px;
+    max-font-size: 35px;
+    min-font-size: 10px;
   }
   .img-logo{
     top: 15px;
@@ -460,10 +569,11 @@
   }
 
   .date-icon{
-    position: absolute;
-    left: 65px;
+    position: relative;
     top: 15px;
     width: 50px;
+    min-width: 10px;
+    min-height: 10px;
     height: 40px;
     text-align: center;
   }

@@ -7,14 +7,14 @@
  *
  */
 
-let baseUrl = 'https://sapi.k780.com/';
+let baseUrl = 'https://sapi.k780.com';
 
 
 if (process.env.NODE_ENV == 'development') {
-  baseUrl = 'https://sapi.k780.com/';
+  baseUrl = 'https://sapi.k780.com';
 
 }else if(process.env.NODE_ENV == 'production'){
-	baseUrl = 'https://sapi.k780.com/';
+	baseUrl = 'https://sapi.k780.com';
 }
 
 export {
