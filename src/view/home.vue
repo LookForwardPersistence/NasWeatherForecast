@@ -2,51 +2,51 @@
   <div>
     <selection class="header-box">
       <div class="icon-box">
-      <img src="../assets/images/b/10.png"/>
+      <img src="../assets/images/logo.png" class="img-logo"/>
+        <span>星云看天气</span>
       </div>
       <div class="input-box">
-      <el-input class="input-input input-width-select" v-model="cityName" placeholder="请输入城市名">
+      <el-input class="input-input input-width-select" v-model="cityName" @keyup.enter.native="search()" placeholder="请输入城市名">
       </el-input>
       <el-button type="primary" icon="el-icon-search" @click="search()">搜索</el-button>
       </div>
     </selection>
     <section class="main-box">
     <div class="air-box">
-      <img :src=currData.weather_iconid class="icon-air" />
-      <p class="air-time"><span>{{currData.days}}</span></p>
+      <img :src=currData.weather_icon class="icon-air" />
+      <img :src=currData.weather_icon1 class="icon-air1" />
+      <p class="air-time"><span>{{currData.days}}</span><span>{{currData.week}}</span></p>
       <p class="air-num">{{currData.temp_high}}<i>℃</i></p>
+      <P class="air-weather">{{currData.weather}}</P>
       <b class="air-city">{{currData.citynm}}</b>
       <ul class="air-info">
-        <li>天气：{{currData.weather}}</li>
+        <!--<li>天气：{{currData.weather}}</li>-->
         <li>风级：{{currData.winp}}</li>
         <li>气温：{{currData.temperature}}</li>
       </ul>
     </div>
       <div class="tip-box">
         <div class="air-trend">
-          <h3 class="air-trend-tit">空气质量趋势</h3>
           <div class="air-trend-ctn">
-            <div class="chart" id="barchart"></div>
+            <div class="chart" id="gotobedbar"></div>
           </div>
         </div>
       </div>
     </section>
     <section class="week-box">
-      <div class="date-box">
-        <img src="../assets/images/b/0.png"/>
+      <div class="date-box" v-for="em in weekData">
+        <img :src=em.weather_icon class="date-icon" />
+        <ul class="air-info-date">
+          <li>天气：{{em.weather}}</li>
+          <li>风级：{{em.winp}}</li>
+          <li>气温：{{em.temperature}}</li>
+          <li>日期：{{em.days}}</li>
+          <li>{{em.week}}</li>
+        </ul>
       </div>
-      <div class="date-box">
-        <img src="../assets/images/b/1.png"/>
-      </div>
-      <div class="date-box">
-        <img src="../assets/images/b/2.png"/>
-      </div>
-      <div class="date-box">
-        <img src="../assets/images/b/3.png"/>
-      </div>
-      <div class="date-box">
-        <img src="../assets/images/b/4.png"/>
-      </div>
+    </section>
+    <section class="bottom-box">
+      <span>Copyright © 2018-2019 fqhua_5@sin.cn</span>
     </section>
   </div>
 </template>
@@ -56,12 +56,11 @@
   import ElButton from "../../node_modules/element-ui/packages/button/src/button.vue";
   import "../assets/js/nebPay"
   import "../assets/js/nebPay"
-  import BaiduMap from 'vue-baidu-map'
-  import Vue from 'vue'
-  Vue.use(BaiduMap,{
-    ak: 'A63e90def3d0f5488ab9032056429a0d'
-  })
   import {getWeatherData} from "../api/Api"
+  import echarts from 'echarts'
+  import macarons from 'echarts/theme/macarons';
+
+
   export default {
     components: {
       ElButton,
@@ -70,7 +69,8 @@
     data(){
       return {
         cityName: '',
-        currData: []
+        currData: [],
+        weekData:[]
       }
     },
     computed:{
@@ -87,28 +87,120 @@
     },
     mounted(){
         this.cityName = localStorage.getItem("cityName")
-        getWeatherData(encodeURI(this.cityName)).then(res =>{
-          if(res.success){
-            this.currData = res.result[0]
-            this.currData.weather_iconid="../assets/images/b/"+res.result[0].weather_iconid+".png";
-            console.log(this.currData)
-            this.imageToBase64(this.currData.weather_iconid)
-          }
-        } )
+        this.search();
     },
     methods: {
-      init(){
+      drawbar(id,xData,dayData,nightData) {
+      let o = document.getElementById(id);
+      let height = document.documentElement.clientHeight;
+      height -= 420;
+      o.style.height= height+"px";
+      this.chart = echarts.init(o,'macarons');
+      const option = this.getOption(xData,dayData,nightData)
+      this.chart.setOption(option);
+    },
+      getOption(xData,dayData,nightData){
+        var option = {
+          title: {
+            text: '七天气温趋势',
+            subtext: '气温（℃）',
+            left:'center',
+            color:'red'
+          },
+          tooltip: {
+            trigger: 'axis',
+            axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+              type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+            }
+          },
+          legend: {
+            data: ['白天', '晚上'],
+            orient:'vertical',
+            left:'right',
+            top:'middle',//如果 top 的值为'top', 'middle', 'bottom'，组件会根据相应的位置自动对齐。
+            itemGap:20
+          },
+          toolbox: {
+            show: true,
+            orient: 'horizontal',      // 布局方式，默认为水平布局，可选为：
+            // 'horizontal' ¦ 'vertical'
+            x: 'right',                // 水平安放位置，默认为全图右对齐，可选为：
+                                       // 'center' ¦ 'left' ¦ 'right'
+                                       // ¦ {number}（x坐标，单位px）
+            y: 'top',                  // 垂直安放位置，默认为全图顶端，可选为：
+                                       // 'top' ¦ 'bottom' ¦ 'center'
+                                       // ¦ {number}（y坐标，单位px）
+            color: ['#d2691e', '#22bb22', '#4b0082', '#1e90ff'],
+            feature: {
+              mark: {show: true},
+              dataView: {show: true, readOnly: false},
+              magicType: {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+              restore: {show: true},
+              saveAsImage: {show: true}
+            }
+          },
+          calculable: true,
+          dataZoom: {
+            show: true,
+            realtime: true,
+            start: 0,
+            end: 100
+          },
+          xAxis: [
+            {
+              type: 'category',
+              boundaryGap: false,
+              data: xData
+            }
+          ],
+          yAxis: [
+            {
+              type: 'value'
+            }
+          ],
+          series: [
+            {
+              name: '白天',
+              type: 'line',
+              tiled : '气温',
+              areaStyle: {normal: {}},
+              data: dayData
+            },
+            {
+              name: '晚上',
+              type: 'line',
+              tiled : '气温',
+              areaStyle: {normal: {}},
+              data: nightData
+            }
+          ]
+        };
+
+        return option;
+      },
+      getFormatDate: function () {
+        var date = new Date();
+        var seperator1 = "-";
+        var seperator2 = ":";
+        var month = date.getMonth() + 1;
+        var strDate = date.getDate();
+        if (month >= 1 && month <= 9) {
+          month = "0" + month;
+        }
+        if (strDate >= 0 && strDate <= 9) {
+          strDate = "0" + strDate;
+        }
+        var formatdate = date.getFullYear() + seperator1 + month + seperator1 + strDate;
+        return formatdate;
+      },
+      weekLine(data){
         var serieChart=document.getElementById("barchart");
         var aqiChart=echarts.init(serieChart);
         var xdata=[];
         var ydata=[];
-        data=sortByKey(data.data,"MONITORTIME");
         for(var i in data){
-          ydata.push(data[i].AQIVALUE);
-          var dates=moment(data[i].MONITORTIME).add(1,"hours").format('YYYY年MM月DD日 HH时');
-
-          var arr=dates.split(' ');
-          xdata.push(arr[1]);
+          ydata.push(data[i].temperature);
+          xdata.push(data[i].weeks);
         }
         aqiChart.setOption(getOptionNew('line',xdata,ydata,"AQI"));
       },
@@ -118,13 +210,49 @@
         }
         getWeatherData(encodeURI(this.cityName)).then(res =>{
           if(res.success){
-            this.currData = res.result[0];
-            this.currData.weather_iconid="../assets/images/b/"+res.result[0].weather_iconid+".png";
+            if(res.success ==="0"){
+              this.$message({
+                showClose: true,
+                message: res.msg,
+                type: 'warning'
+              });
+              return
+            }
+            var data = res.result;
+            this.weekData = res.result;
+//            this.weekLine(res.result)
+            console.log(data)
+            var date=this.getFormatDate();
+            for(let i=0;i<data.length;i++){
+              if(date === data[i].days){
+                this.currData = data[i];
+                break;
+              }
+            }
             console.log(this.currData)
+            //仪表盘
+            var xData = [];
+            var dayData = [];
+            var nightData = []
+            for(let j=0;j<data.length;j++){
+              xData.push(data[j].days);
+              dayData.push(data[j].temp_high);
+              nightData.push(data[j].temp_low);
+            }
+
+              this.drawbar('gotobedbar', xData,dayData,nightData);
+              var that = this;
+              var resizeTimer = null;
+              window.onresize = function () {
+                if (resizeTimer) clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function () {
+                  that.drawbar('gotobedbar', xData,dayData,nightData);
+                }, 300);
+              }
           }
         })
       },
-      imageToBase64(url){
+      imageToBase64(url,callBack){
        /* var reader = new FileReader();
         reader.readAsDataURL(url);
         reader.onload = function () {
@@ -134,29 +262,27 @@
         //通过构造函数来创建的 img 实例，在赋予 src 值后就会立刻下载图片，相比 createElement() 创建 <img> 省去了 append()，也就避免了文档冗余和污染
         var Img = new Image(),
           dataURL='';
-        Img.src=url;
         console.log(Img)
-//        Img.onload = function(){ //要先确保图片完整获取到，这是个异步事件
+        Img.onload = function(){ //要先确保图片完整获取到，这是个异步事件
           console.log("onload")
           var canvas = document.createElement("canvas"), //创建canvas元素
             width=Img.width, //确保canvas的尺寸和图片一样
             height=Img.height;
-          console.log("canvas:")
-          console.log(canvas)
           canvas.width=width;
           canvas.height=height;
           canvas.getContext("2d").drawImage(Img,10,10,width,height); //将图片绘制到canvas中
-          dataURL=canvas.toDataURL('image/jpeg'); //转换图片为dataURL
-          console.log(dataURL)
-//        };
+          dataURL=canvas.toDataURL('image/jpg'); //转换图片为dataURL
+          console.log(dataURL);
+          callBack?callBack(dataURL):null;
+        };
       }
-    }
+    },
   }
 </script>
 
 <style>
   .header-box{
-    height: 80px;
+    height: 60px;
     background: #58b6ff ;
     display: flex;
     flex-direction: row;
@@ -167,8 +293,16 @@
     width: 30%;
     display: flex;
     justify-content: flex-start;
+    align-items: center;
+    color: #ffffff;
+    font-size: 35px;
   }
-
+  .img-logo{
+    top: 15px;
+    width: 65px;
+    margin-left: 5px;
+    border-radius: 30px;
+  }
   .input-box{
      width: 70%;
      display: flex;
@@ -220,6 +354,13 @@
     width: 50px;
     height: 40px;
   }
+  .icon-air1 {
+    position: absolute;
+    left: 85px;
+    top: 15px;
+    width: 50px;
+    height: 40px;
+  }
 
   .air-time {
     position: absolute;
@@ -242,10 +383,20 @@
     left: 15px;
   }
 
+  .air-weather{
+    font-size: 20px;
+    color: #fff;
+    position: relative;
+    left: 8%;
+    top: 60px;
+  }
   .air-num i {
     font-size: 36px;
   }
 
+  .air-trend-title{
+    color: #ffffff;
+  }
   .air-city {
     position: absolute;
     right: 15px;
@@ -274,7 +425,28 @@
     font-size: 14px;
     list-style: none;
   }
+  .air-info-date{
+   position: absolute;
+   top: 55px;
+   left: 5px;
+   right: 5px;
+   border-top: 1px dashed #fff;
+   padding: 5px 10px 0;
+ }
+  .air-info-date li {
+    color: #fff;
+    font-size: 14px;
+    list-style: none;
+  }
 
+  .date-icon{
+    position: absolute;
+    left: 65px;
+    top: 15px;
+    width: 50px;
+    height: 40px;
+    text-align: center;
+  }
   .tip-box {
     background: #58b6ff url(../assets/images/bg_shine.png) no-repeat;
     /*background-size: 204px 225px;*/
@@ -284,5 +456,13 @@
     width: 50%;
     position: relative;
   }
-
+  .bottom-box{
+    height: 120px;
+    background: #58b6ff ;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    color: white;
+  }
 </style>
