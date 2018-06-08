@@ -21,14 +21,14 @@
       <b class="air-city">{{currData.citynm}}</b>
       <ul class="air-info">
         <!--<li>天气：{{currData.weather}}</li>-->
-        <li>风级：{{currData.winp}}</li>
-        <li>气温：{{currData.temperature}}</li>
+        <li>{{currData.winp}}</li>
+        <li>{{currData.temperature}}</li>
       </ul>
     </div>
       <div class="tip-box">
         <div class="air-trend">
-          <div class="air-trend-ctn">
-            <div class="chart" id="gotobedbar"></div>
+          <div class="air-trend-ctn" style="color:white;">
+            <div class="chart" id="gotobedbar" style="color:white; "></div>
           </div>
         </div>
       </div>
@@ -37,10 +37,10 @@
       <div class="date-box" v-for="em in weekData">
         <img :src=em.weather_icon class="date-icon" />
         <ul class="air-info-date">
-          <li>天气：{{em.weather}}</li>
-          <li>风级：{{em.winp}}</li>
-          <li>气温：{{em.temperature}}</li>
-          <li>日期：{{em.days}}</li>
+          <li>{{em.weather}}</li>
+          <li>{{em.winp}}</li>
+          <li>{{em.temperature}}</li>
+          <li>{{em.days}}</li>
           <li>{{em.week}}</li>
         </ul>
       </div>
@@ -103,15 +103,21 @@
       getOption(xData,dayData,nightData){
         var option = {
           title: {
-            text: '七天气温趋势',
+            text: '七天昼夜气温趋势',
             subtext: '气温（℃）',
             left:'center',
-            color:'red'
+            textStyle:{
+              color: '#fff'
+            },
+            subtextStyle: {
+              color: '#fff'
+            }
           },
           tooltip: {
             trigger: 'axis',
             axisPointer : {            // 坐标轴指示器，坐标轴触发有效
               type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+
             }
           },
           legend: {
@@ -119,7 +125,10 @@
             orient:'vertical',
             left:'right',
             top:'middle',//如果 top 的值为'top', 'middle', 'bottom'，组件会根据相应的位置自动对齐。
-            itemGap:20
+            itemGap:20,
+            textStyle:{
+              color: '#fff'
+            }
           },
           toolbox: {
             show: true,
@@ -151,12 +160,22 @@
             {
               type: 'category',
               boundaryGap: false,
-              data: xData
+              data: xData,
+              axisLine:{
+                lineStyle:{
+                  color: '#fff'
+                }
+              }
             }
           ],
           yAxis: [
             {
-              type: 'value'
+              type: 'value',
+              axisLine:{
+                lineStyle: {
+                  color: '#fff'
+                }
+              }
             }
           ],
           series: [
