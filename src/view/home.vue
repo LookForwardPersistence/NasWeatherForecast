@@ -21,14 +21,14 @@
       <b class="air-city">{{currData.citynm}}</b>
       <ul class="air-info">
         <!--<li>天气：{{currData.weather}}</li>-->
-        <li>风级：{{currData.winp}}</li>
-        <li>气温：{{currData.temperature}}</li>
+        <li>{{currData.winp}}</li>
+        <li>{{currData.temperature}}</li>
       </ul>
     </div>
       <div class="tip-box">
         <div class="air-trend">
-          <div class="air-trend-ctn">
-            <div class="chart" id="gotobedbar"></div>
+          <div class="air-trend-ctn" style="color:white;">
+            <div class="chart" id="gotobedbar" style="color:white; "></div>
           </div>
         </div>
       </div>
@@ -37,10 +37,10 @@
       <div class="date-box" v-for="em in weekData">
         <img :src=em.weather_icon class="date-icon" />
         <ul class="air-info-date">
-          <li>天气：{{em.weather}}</li>
-          <li>风级：{{em.winp}}</li>
-          <li>气温：{{em.temperature}}</li>
-          <li>日期：{{em.days}}</li>
+          <li>{{em.weather}}</li>
+          <li>{{em.winp}}</li>
+          <li>{{em.temperature}}</li>
+          <li>{{em.days}}</li>
           <li>{{em.week}}</li>
         </ul>
       </div>
@@ -59,24 +59,31 @@
   import {getWeatherData} from "../api/Api"
   import echarts from 'echarts'
   import macarons from 'echarts/theme/macarons';
-
-
+  import {getWeather,getWeatherData1} from "../api/getData"
+  import $ from 'jquery'
+  import Vue from 'vue';
+  import vueJsonp from 'vue-jsonp'
+  Vue.use(vueJsonp,5000)
   export default {
     components: {
       ElButton,
-      ElInput
+      ElInput,
     },
     data(){
       return {
         cityName: '',
         currData: [],
-        weekData:[]
+        weekData:[],
+        api: "https://sapi.k780.com?app=weather.future&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json&weaid="
+
       }
     },
     computed:{
 
     },
     created(){
+      this.messageListener();
+      this.getWallectInfo();
       var localCity = new BMap.LocalCity();
       localCity.get(myFun); //异步获得当前城市
       var cName;
@@ -99,18 +106,43 @@
       const option = this.getOption(xData,dayData,nightData)
       this.chart.setOption(option);
     },
+      //获取当前钱包地址begin
+      getWallectInfo: function () {
+        window.postMessage({
+          "target": "contentscript",
+          "data": {},
+          "method": "getAccount",
+        }, "*");
+      },
+      messageListener: function () {
+        var _this = this
+        window.addEventListener('message', function (e) {
+          if (e.data && e.data.data) {
+            if (e.data.data.account) {
+              alert( e.data.data.account)
+            }
+          }
+        })
+      },
+      //获取当前钱包地址end
       getOption(xData,dayData,nightData){
         var option = {
           title: {
-            text: '七天气温趋势',
+            text: '七天昼夜气温趋势',
             subtext: '气温（℃）',
             left:'center',
-            color:'red'
+            textStyle:{
+              color: '#fff'
+            },
+            subtextStyle: {
+              color: '#fff'
+            }
           },
           tooltip: {
             trigger: 'axis',
             axisPointer : {            // 坐标轴指示器，坐标轴触发有效
               type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+
             }
           },
           legend: {
@@ -118,7 +150,10 @@
             orient:'vertical',
             left:'right',
             top:'middle',//如果 top 的值为'top', 'middle', 'bottom'，组件会根据相应的位置自动对齐。
-            itemGap:20
+            itemGap:20,
+            textStyle:{
+              color: '#fff'
+            }
           },
           toolbox: {
             show: true,
@@ -150,12 +185,22 @@
             {
               type: 'category',
               boundaryGap: false,
-              data: xData
+              data: xData,
+              axisLine:{
+                lineStyle:{
+                  color: '#fff'
+                }
+              }
             }
           ],
           yAxis: [
             {
-              type: 'value'
+              type: 'value',
+              axisLine:{
+                lineStyle: {
+                  color: '#fff'
+                }
+              }
             }
           ],
           series: [
@@ -208,7 +253,109 @@
         if(!this.cityName){
           return
         }
+        var thiz = this;
+       /* let url = thiz.api + encodeURI(this.cityName);
+        this.$jsonp(url).then(res=>{
+          console.log(res)
+        }).catch(err=>{
+          console.log(err)
+        })*/
+       /* $.ajax({
+          url: thiz.api + encodeURI(this.cityName),
+          type: 'get',
+          dataType: 'JSONP',
+          success: function (res) {
+            console.log(res)
+            if(res.success){
+              if(res.success ==="0"){
+                this.$message({
+                  showClose: true,
+                  message: res.msg,
+                  type: 'warning'
+                });
+                return
+              }
+              var data = res.result;
+              this.weekData = res.result;
+//            this.weekLine(res.result)
+              console.log(data)
+              var date=this.getFormatDate();
+              for(let i=0;i<data.length;i++){
+                if(date === data[i].days){
+                  this.currData = data[i];
+                  break;
+                }
+              }
+              console.log(this.currData)
+              //仪表盘
+              var xData = [];
+              var dayData = [];
+              var nightData = []
+              for(let j=0;j<data.length;j++){
+                xData.push(data[j].days);
+                dayData.push(data[j].temp_high);
+                nightData.push(data[j].temp_low);
+              }
+
+              this.drawbar('gotobedbar', xData,dayData,nightData);
+              var that = this;
+              var resizeTimer = null;
+              window.onresize = function () {
+                if (resizeTimer) clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function () {
+                  that.drawbar('gotobedbar', xData,dayData,nightData);
+                }, 300);
+              }
+            }
+          }
+        })*/
+       /* getWeatherData1(this.cityName).then(
+          function (res) {
+            if(res.success){
+              if(res.success ==="0"){
+                this.$message({
+                  showClose: true,
+                  message: res.msg,
+                  type: 'warning'
+                });
+                return
+              }
+              var data = res.result;
+              this.weekData = res.result;
+//            this.weekLine(res.result)
+              console.log(data)
+              var date=this.getFormatDate();
+              for(let i=0;i<data.length;i++){
+                if(date === data[i].days){
+                  this.currData = data[i];
+                  break;
+                }
+              }
+              console.log(this.currData)
+              //仪表盘
+              var xData = [];
+              var dayData = [];
+              var nightData = []
+              for(let j=0;j<data.length;j++){
+                xData.push(data[j].days);
+                dayData.push(data[j].temp_high);
+                nightData.push(data[j].temp_low);
+              }
+
+              this.drawbar('gotobedbar', xData,dayData,nightData);
+              var that = this;
+              var resizeTimer = null;
+              window.onresize = function () {
+                if (resizeTimer) clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function () {
+                  that.drawbar('gotobedbar', xData,dayData,nightData);
+                }, 300);
+              }
+            }
+          }
+        )*/
         getWeatherData(encodeURI(this.cityName)).then(res =>{
+          console.log(res)
           if(res.success){
             if(res.success ==="0"){
               this.$message({
@@ -290,12 +437,15 @@
     align-items: center;
   }
   .icon-box{
+    display: flex;
     width: 30%;
     display: flex;
     justify-content: flex-start;
     align-items: center;
     color: #ffffff;
-    font-size: 35px;
+    font-size: 30px;
+    max-font-size: 35px;
+    min-font-size: 10px;
   }
   .img-logo{
     top: 15px;
@@ -440,10 +590,11 @@
   }
 
   .date-icon{
-    position: absolute;
-    left: 65px;
+    position: relative;
     top: 15px;
     width: 50px;
+    min-width: 10px;
+    min-height: 10px;
     height: 40px;
     text-align: center;
   }

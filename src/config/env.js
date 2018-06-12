@@ -11,10 +11,10 @@ let baseUrl = '';
 
 
 if (process.env.NODE_ENV == 'development') {
-  baseUrl = '';
+  baseUrl = 'https://sapi.k780.com';
 
 }else if(process.env.NODE_ENV == 'production'){
-	baseUrl = 'https://sapi.k780.com/';
+	baseUrl = 'https://sapi.k780.com';
 }
 
 export {

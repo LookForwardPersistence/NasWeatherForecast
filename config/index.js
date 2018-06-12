@@ -14,7 +14,7 @@ module.exports = {
       '/api': {
         target: 'https://sapi.k780.com',
         changeOrigin: true,
-        pathRewrite:{
+        pathRewrite: {
           '^/api': '/api'
         }
       }
